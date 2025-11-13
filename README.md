@@ -1,7 +1,7 @@
-# Project: NAME
+# Project: RentLoop
 
 ## Contributors
-NAME, NAME, NAME
+Al Nahiyan and Saeed AlKaabi
 
 ## Dependencies
 - LANGUAGE AND VERSION
