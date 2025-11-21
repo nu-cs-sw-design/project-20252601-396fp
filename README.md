@@ -31,7 +31,7 @@ Al Nahiyan and Saeed AlKaabi
     http://127.0.0.1:8000
 - To access the API documentation, go to:
     http://127.0.0.1:8000/docs
-The SQLite database file (campus_rental.db) is created automatically the first time you run the server.
+- The SQLite database file (campus_rental.db) is created automatically the first time you run the server.
 
 ## Milestones:
 - Milestone 1: https://docs.google.com/document/d/1NtlV_lC_xWwM-uV6avwhlX2GhohpykeKkHb5RiIDSaU/edit?usp=sharing
