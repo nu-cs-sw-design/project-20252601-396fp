@@ -1,2 +1,648 @@
-@startuml
+@startuml Campus_Rental_Platform
+
+' ============================================
+' THREE-LAYER ARCHITECTURE OVERVIEW
+' ============================================
+' This design follows a Three-Layer Architecture as the primary pattern:
+' 
+' Layer 1 - PRESENTATION: Handles all user interactions and UI rendering
+'           Sub-architecture: MVC (Model-View-Controller) pattern
+'           - Model: Client-side state management (Redux)
+'           - View: React UI components that display data
+'           - Controller: Event handlers that process user actions and make API calls
+'
+' Layer 2 - DOMAIN: Contains all business logic and rules
+'           - Services: Coordinate business operations
+'           - Models: Core domain entities (User, Listing, Rental, etc.)
+'           Services depend on Repository interfaces (not implementations)
+'
+' Layer 3 - DATA SOURCE: Manages all data persistence and external integrations
+'           Sub-architecture: Selective Microservices for critical subsystems
+'           - Repositories: Abstract data access for main database
+'           - Microservices: Independent services with own databases
+'             * AuthService: User authentication and verification
+'             * PaymentService: Financial transactions and deposits
+'             * NotificationService: Email/SMS notifications
+'             * SearchService: Listing search and recommendations
+'
+' LAYER INTERACTION RULES:
+' - Presentation can ONLY call Domain (never Data Source directly)
+' - Domain can ONLY call Data Source through interfaces
+' - Data Source NEVER calls Domain or Presentation
+' - Controllers in Presentation call Services in Domain
+' - Services in Domain call Repositories and Microservice interfaces in Data Source
+' ============================================
+
+package "presentation" <<Rectangle>> {
+    
+    ' MODEL: Client-side application state
+    ' Stores all data needed by UI components
+    ' Changes to state trigger automatic UI re-renders
+    package "model" {
+        class AuthState {
+            -currentUser: User
+            -isAuthenticated: boolean
+            -token: String
+            +updateUser(user: User): void
+            +login(token: String): void
+            +logout(): void
+        }
+        
+        class ListingState {
+            -searchResults: List<Listing>
+            -userListings: List<Listing>
+            -currentListing: Listing
+            -filters: SearchFilters
+            +updateSearchResults(listings: List<Listing>): void
+            +addListing(listing: Listing): void
+            +updateFilters(filters: SearchFilters): void
+        }
+        
+        class RentalState {
+            -activeRentals: List<Rental>
+            -pendingRequests: List<Rental>
+            -rentalHistory: List<Rental>
+            +addRental(rental: Rental): void
+            +updateRentalStatus(rentalId: String, status: RentalStatus): void
+            +removeRental(rentalId: String): void
+        }
+        
+        class UIState {
+            -isLoading: boolean
+            -error: String
+            -modalOpen: boolean
+            +setLoading(loading: boolean): void
+            +setError(error: String): void
+        }
+    }
+    
+    ' VIEW: Pure presentation components
+    ' Only responsible for rendering UI
+    ' Reads data from Model, emits events to Controller
+    ' Contains no business logic
+    package "view" {
+        class HomePage {
+            +render(): void
+        }
+        
+        class SearchPage {
+            +render(): void
+            +displayResults(listings: List<Listing>): void
+        }
+        
+        class ListingDetailPage {
+            +render(): void
+            +displayListing(listing: Listing): void
+        }
+        
+        class DashboardPage {
+            +render(): void
+            +displayActiveRentals(): void
+            +displayPendingRequests(): void
+        }
+        
+        class MessagesPage {
+            +render(): void
+            +displayConversations(): void
+        }
+        
+        class ProfilePage {
+            +render(): void
+            +displayUserInfo(): void
+        }
+    }
+    
+    ' CONTROLLER: Handles user interactions
+    ' Makes API calls to Domain Layer services
+    ' Updates Model with responses
+    ' Manages navigation and loading states
+    package "controller" {
+        class AuthController {
+            +loginUser(email: String, password: String): void
+            +registerUser(userData: UserData): void
+            +verifyEmail(token: String): void
+            +logout(): void
+        }
+        
+        class ListingController {
+            +searchListings(query: String, filters: SearchFilters): void
+            +createListing(listingData: ListingData): void
+            +updateListing(id: String, changes: ListingData): void
+            +deleteListing(id: String): void
+        }
+        
+        class RentalController {
+            +requestRental(listingId: String, dates: DateRange): void
+            +approveRental(rentalId: String): void
+            +denyRental(rentalId: String): void
+            +confirmPickup(rentalId: String): void
+            +confirmReturn(rentalId: String): void
+            +requestExtension(rentalId: String, newDate: Date): void
+        }
+        
+        class MessageController {
+            +sendMessage(conversationId: String, text: String): void
+            +fetchConversations(): void
+        }
+    }
+}
+
+package "domain" <<Rectangle>> {
+    
+    ' DOMAIN MODELS: Core business entities
+    ' Represent the fundamental concepts of the rental platform
+    ' Contain data and behavior specific to each entity
+    ' No dependencies on infrastructure (databases, UI, etc.)
+    package "models" {
+        class User {
+            -id: String
+            -email: String
+            -name: String
+            -studentId: String
+            -reputation: float
+            -isVerified: boolean
+            +User(email: String, name: String)
+            +getReputationScore(): float
+            +updateReputation(score: float): void
+            +verifyStudent(): void
+        }
+        
+        class Listing {
+            -id: String
+            -ownerId: String
+            -title: String
+            -description: String
+            -category: Category
+            -pricePerDay: float
+            -condition: ItemCondition
+            -location: Location
+            -availability: AvailabilityCalendar
+            +Listing(ownerId: String, title: String, pricePerDay: float)
+            +isAvailable(startDate: Date, endDate: Date): boolean
+            +calculateTotalCost(days: int): float
+            +updateAvailability(calendar: AvailabilityCalendar): void
+        }
+        
+        class Rental {
+            -id: String
+            -listingId: String
+            -renterId: String
+            -renteeId: String
+            -startDate: Date
+            -endDate: Date
+            -status: RentalStatus
+            -totalCost: float
+            -securityDeposit: float
+            +Rental(listingId: String, renteeId: String, dates: DateRange)
+            +calculateLateFee(returnDate: Date): float
+            +updateStatus(newStatus: RentalStatus): void
+            +canBeExtended(): boolean
+            +extendRental(newEndDate: Date): void
+        }
+        
+        class Review {
+            -id: String
+            -rentalId: String
+            -reviewerId: String
+            -revieweeId: String
+            -rating: int
+            -comment: String
+            -timestamp: Date
+            +Review(rentalId: String, reviewerId: String, rating: int)
+            +isValid(): boolean
+        }
+        
+        class Message {
+            -id: String
+            -conversationId: String
+            -senderId: String
+            -content: String
+            -timestamp: Date
+            +Message(conversationId: String, senderId: String, content: String)
+        }
+        
+        enum RentalStatus {
+            PENDING
+            APPROVED
+            CONFIRMED
+            ACTIVE
+            COMPLETED
+            CANCELLED
+        }
+        
+        enum Category {
+            ELECTRONICS
+            TEXTBOOKS
+            SPORTS_EQUIPMENT
+            TOOLS
+            FURNITURE
+            OTHER
+        }
+        
+        enum ItemCondition {
+            NEW
+            LIKE_NEW
+            GOOD
+            FAIR
+        }
+    }
+    
+    ' DOMAIN SERVICES: Business logic orchestration
+    ' Coordinate operations across multiple entities
+    ' Enforce business rules (e.g., can't rent your own item)
+    ' Calculate costs, validate requests, manage workflows
+    ' Depend on INTERFACES from Data Source Layer (Dependency Inversion Principle)
+    package "services" {
+        class RentalService {
+            -rentalRepository: IRentalRepository
+            -paymentServiceClient: IPaymentService
+            -notificationServiceClient: INotificationService
+            +RentalService(rentalRepo: IRentalRepository, paymentService: IPaymentService, notificationService: INotificationService)
+            +createRentalRequest(listingId: String, renteeId: String, dates: DateRange): Rental
+            +approveRental(rentalId: String, renterId: String): boolean
+            +denyRental(rentalId: String, reason: String): void
+            +confirmPickup(rentalId: String): void
+            +confirmReturn(rentalId: String): void
+            +calculateCost(listing: Listing, days: int): float
+            +validateRentalRequest(request: RentalRequest): boolean
+        }
+        
+        class ListingService {
+            -listingRepository: IListingRepository
+            -searchServiceClient: ISearchService
+            +ListingService(listingRepo: IListingRepository, searchService: ISearchService)
+            +createListing(ownerId: String, listingData: ListingData): Listing
+            +updateListing(id: String, changes: ListingData): void
+            +deleteListing(id: String): void
+            +checkAvailability(listingId: String, dates: DateRange): boolean
+            +updateAvailability(listingId: String, calendar: AvailabilityCalendar): void
+        }
+        
+        class UserService {
+            -userRepository: IUserRepository
+            -authServiceClient: IAuthService
+            +UserService(userRepo: IUserRepository, authService: IAuthService)
+            +getUserProfile(userId: String): User
+            +updateProfile(userId: String, data: UserData): void
+            +calculateReputation(userId: String): float
+            +updateReputation(userId: String, score: float): void
+        }
+        
+        class RecommendationService {
+            -listingRepository: IListingRepository
+            -userRepository: IUserRepository
+            +RecommendationService(listingRepo: IListingRepository, userRepo: IUserRepository)
+            +generateRecommendations(userId: String): List<Listing>
+            +analyzeUserBehavior(userId: String): UserPreferences
+        }
+        
+        class MessageService {
+            -messageRepository: IMessageRepository
+            +MessageService(messageRepo: IMessageRepository)
+            +sendMessage(conversationId: String, senderId: String, content: String): Message
+            +getConversation(conversationId: String): List<Message>
+            +getConversationsForUser(userId: String): List<Conversation>
+        }
+    }
+}
+
+package "datasource" <<Rectangle>> {
+    
+    ' REPOSITORY INTERFACES: Abstraction for data access
+    ' Define contracts for data operations without implementation details
+    ' Domain Layer depends on these interfaces (Dependency Inversion)
+    ' Implementations can change without affecting Domain Layer
+    package "repositories" {
+        interface IRentalRepository {
+            +save(rental: Rental): void
+            +findById(id: String): Rental
+            +findByUserId(userId: String): List<Rental>
+            +findByStatus(status: RentalStatus): List<Rental>
+            +update(rental: Rental): void
+            +delete(id: String): void
+        }
+        
+        interface IListingRepository {
+            +save(listing: Listing): void
+            +findById(id: String): Listing
+            +findByOwnerId(ownerId: String): List<Listing>
+            +findAvailable(filters: SearchFilters): List<Listing>
+            +update(listing: Listing): void
+            +delete(id: String): void
+        }
+        
+        interface IUserRepository {
+            +save(user: User): void
+            +findById(id: String): User
+            +findByEmail(email: String): User
+            +update(user: User): void
+            +delete(id: String): void
+        }
+        
+        interface IReviewRepository {
+            +save(review: Review): void
+            +findByRentalId(rentalId: String): List<Review>
+            +findByUserId(userId: String): List<Review>
+        }
+        
+        interface IMessageRepository {
+            +save(message: Message): void
+            +findByConversationId(conversationId: String): List<Message>
+            +findConversationsForUser(userId: String): List<Conversation>
+        }
+        
+        ' REPOSITORY IMPLEMENTATIONS: Concrete data access
+        ' Execute actual database queries
+        ' All use the shared main Database connection
+        class RentalRepositoryImpl {
+            -database: Database
+            +RentalRepositoryImpl(database: Database)
+            +save(rental: Rental): void
+            +findById(id: String): Rental
+            +findByUserId(userId: String): List<Rental>
+            +findByStatus(status: RentalStatus): List<Rental>
+            +update(rental: Rental): void
+            +delete(id: String): void
+        }
+        
+        class ListingRepositoryImpl {
+            -database: Database
+            +ListingRepositoryImpl(database: Database)
+            +save(listing: Listing): void
+            +findById(id: String): Listing
+            +findByOwnerId(ownerId: String): List<Listing>
+            +findAvailable(filters: SearchFilters): List<Listing>
+            +update(listing: Listing): void
+            +delete(id: String): void
+        }
+        
+        class UserRepositoryImpl {
+            -database: Database
+            +UserRepositoryImpl(database: Database)
+            +save(user: User): void
+            +findById(id: String): User
+            +findByEmail(email: String): User
+            +update(user: User): void
+            +delete(id: String): void
+        }
+        
+        ' MAIN DATABASE: Shared PostgreSQL database
+        ' Stores core platform data (users, listings, rentals, reviews, messages)
+        ' Accessed by repository implementations
+        class Database {
+            -connection: Connection
+            +Database(connectionString: String)
+            +query(sql: String): ResultSet
+            +execute(sql: String): void
+            +beginTransaction(): void
+            +commit(): void
+            +rollback(): void
+        }
+    }
+    
+    ' MICROSERVICE INTERFACES: Abstraction for external services
+    ' Domain Layer depends on these interfaces, not concrete implementations
+    ' Allows microservices to be developed, deployed, and scaled independently
+    ' Each microservice has its own database for data isolation
+    package "microserviceinterfaces" {
+        interface IPaymentService {
+            +chargeRental(userId: String, amount: float): Transaction
+            +holdDeposit(userId: String, amount: float): Transaction
+            +releaseDeposit(transactionId: String): void
+            +processRefund(transactionId: String, amount: float): void
+        }
+        
+        interface INotificationService {
+            +sendRentalRequestNotification(rental: Rental): void
+            +sendApprovalNotification(rental: Rental): void
+            +sendPickupReminder(rental: Rental): void
+            +sendReturnReminder(rental: Rental): void
+        }
+        
+        interface ISearchService {
+            +indexListing(listing: Listing): void
+            +searchListings(query: String, filters: SearchFilters): List<Listing>
+            +updateListingIndex(listing: Listing): void
+            +deleteListingIndex(listingId: String): void
+        }
+        
+        interface IAuthService {
+            +registerUser(email: String, password: String): User
+            +authenticateUser(email: String, password: String): AuthToken
+            +verifyToken(token: String): User
+            +verifyStudentEmail(email: String): boolean
+        }
+    }
+    
+    ' AUTHENTICATION MICROSERVICE
+    ' Purpose: Isolate security-critical authentication logic
+    ' Own Database: Stores credentials, tokens, verification codes separately for security
+    ' Benefits: High security isolation, can enforce strict access controls
+    package "authservice" {
+        class AuthService {
+            -authDatabase: AuthDatabase
+            +AuthService(authDatabase: AuthDatabase)
+            +registerUser(email: String, password: String): User
+            +authenticateUser(email: String, password: String): AuthToken
+            +verifyToken(token: String): User
+            +verifyStudentEmail(email: String): boolean
+            +generateJWT(user: User): String
+        }
+        
+        class AuthDatabase {
+            -connection: Connection
+            +AuthDatabase(connectionString: String)
+            +saveCredentials(userId: String, hashedPassword: String): void
+            +findCredentials(email: String): Credentials
+            +saveVerificationToken(email: String, token: String): void
+        }
+    }
+    
+    ' PAYMENT MICROSERVICE
+    ' Purpose: Handle all financial transactions with PCI compliance
+    ' Own Database: Stores transaction records separately for audit and security
+    ' Benefits: Payment failures don't crash main platform, easy to switch payment providers
+    ' Integrates with Stripe API for actual payment processing
+    package "paymentservice" {
+        class PaymentService {
+            -paymentDatabase: PaymentDatabase
+            -stripeAPI: StripeAPI
+            +PaymentService(paymentDatabase: PaymentDatabase, stripeAPI: StripeAPI)
+            +chargeRental(userId: String, amount: float): Transaction
+            +holdDeposit(userId: String, amount: float): Transaction
+            +releaseDeposit(transactionId: String): void
+            +processRefund(transactionId: String, amount: float): void
+            +chargeLateFee(userId: String, amount: float): Transaction
+        }
+        
+        class PaymentDatabase {
+            -connection: Connection
+            +PaymentDatabase(connectionString: String)
+            +saveTransaction(transaction: Transaction): void
+            +findByUserId(userId: String): List<Transaction>
+            +updateTransactionStatus(id: String, status: String): void
+        }
+        
+        class StripeAPI {
+            -apiKey: String
+            +StripeAPI(apiKey: String)
+            +charge(customerId: String, amount: float): PaymentIntent
+            +createHold(customerId: String, amount: float): PaymentIntent
+            +releaseHold(intentId: String): void
+        }
+    }
+    
+    ' NOTIFICATION MICROSERVICE
+    ' Purpose: Send notifications through multiple channels without blocking rentals
+    ' Own Database: Stores notification logs and user preferences
+    ' Benefits: High notification volume handled independently, failures are isolated
+    ' Operates asynchronously - Domain publishes events, Notification Service subscribes
+    package "notificationservice" {
+        class NotificationService {
+            -notificationDatabase: NotificationDatabase
+            -emailService: EmailService
+            -smsService: SMSService
+            +NotificationService(notificationDatabase: NotificationDatabase, emailService: EmailService, smsService: SMSService)
+            +sendRentalRequestNotification(rental: Rental): void
+            +sendApprovalNotification(rental: Rental): void
+            +sendPickupReminder(rental: Rental): void
+            +sendReturnReminder(rental: Rental): void
+            +sendLateReturnWarning(rental: Rental): void
+        }
+        
+        class NotificationDatabase {
+            -connection: Connection
+            +NotificationDatabase(connectionString: String)
+            +saveNotification(notification: Notification): void
+            +findByUserId(userId: String): List<Notification>
+            +getUserPreferences(userId: String): NotificationPreferences
+        }
+        
+        class EmailService {
+            -apiKey: String
+            +EmailService(apiKey: String)
+            +sendEmail(to: String, subject: String, body: String): void
+        }
+        
+        class SMSService {
+            -apiKey: String
+            +SMSService(apiKey: String)
+            +sendSMS(phoneNumber: String, message: String): void
+        }
+    }
+    
+    ' SEARCH MICROSERVICE
+    ' Purpose: Provide fast full-text search and AI-powered recommendations
+    ' Own Database: Elasticsearch index optimized for search queries
+    ' Benefits: Search traffic can spike independently from rentals, specialized search tech
+    ' RecommendationEngine analyzes user behavior for personalized suggestions
+    package "searchservice" {
+        class SearchService {
+            -elasticsearchIndex: ElasticsearchIndex
+            -recommendationEngine: RecommendationEngine
+            +SearchService(elasticsearchIndex: ElasticsearchIndex, recommendationEngine: RecommendationEngine)
+            +indexListing(listing: Listing): void
+            +searchListings(query: String, filters: SearchFilters): List<Listing>
+            +updateListingIndex(listing: Listing): void
+            +deleteListingIndex(listingId: String): void
+            +rankResults(results: List<Listing>, userId: String): List<Listing>
+        }
+        
+        class ElasticsearchIndex {
+            -connectionUrl: String
+            +ElasticsearchIndex(connectionUrl: String)
+            +index(document: Document): void
+            +search(query: Query): List<Document>
+            +update(id: String, document: Document): void
+            +delete(id: String): void
+        }
+        
+        class RecommendationEngine {
+            +RecommendationEngine()
+            +generateRecommendations(userId: String, history: List<Rental>): List<Listing>
+            +analyzeUserPreferences(userId: String): UserPreferences
+        }
+    }
+}
+
+
+presentation.controller.AuthController --> presentation.model.AuthState
+presentation.controller.ListingController --> presentation.model.ListingState
+presentation.controller.RentalController --> presentation.model.RentalState
+presentation.controller.MessageController --> presentation.model.UIState
+
+presentation.view.HomePage ..> presentation.model.ListingState
+presentation.view.SearchPage ..> presentation.model.ListingState
+presentation.view.ListingDetailPage ..> presentation.model.ListingState
+presentation.view.DashboardPage ..> presentation.model.RentalState
+presentation.view.MessagesPage ..> presentation.model.UIState
+presentation.view.ProfilePage ..> presentation.model.AuthState
+
+presentation.view.HomePage --> presentation.controller.ListingController
+presentation.view.SearchPage --> presentation.controller.ListingController
+presentation.view.ListingDetailPage --> presentation.controller.RentalController
+presentation.view.DashboardPage --> presentation.controller.RentalController
+presentation.view.MessagesPage --> presentation.controller.MessageController
+
+presentation.controller.AuthController ..> domain.services.UserService
+presentation.controller.ListingController ..> domain.services.ListingService
+presentation.controller.RentalController ..> domain.services.RentalService
+presentation.controller.MessageController ..> domain.services.MessageService
+
+domain.services.RentalService --> datasource.repositories.IRentalRepository
+domain.services.RentalService --> datasource.microserviceinterfaces.IPaymentService
+domain.services.RentalService --> datasource.microserviceinterfaces.INotificationService
+
+domain.services.ListingService --> datasource.repositories.IListingRepository
+domain.services.ListingService --> datasource.microserviceinterfaces.ISearchService
+
+domain.services.UserService --> datasource.repositories.IUserRepository
+domain.services.UserService --> datasource.microserviceinterfaces.IAuthService
+
+domain.services.MessageService --> datasource.repositories.IMessageRepository
+
+domain.services.RecommendationService --> datasource.repositories.IListingRepository
+domain.services.RecommendationService --> datasource.repositories.IUserRepository
+
+
+datasource.repositories.RentalRepositoryImpl ..|> datasource.repositories.IRentalRepository
+datasource.repositories.ListingRepositoryImpl ..|> datasource.repositories.IListingRepository
+datasource.repositories.UserRepositoryImpl ..|> datasource.repositories.IUserRepository
+
+datasource.repositories.RentalRepositoryImpl --> datasource.repositories.Database
+datasource.repositories.ListingRepositoryImpl --> datasource.repositories.Database
+datasource.repositories.UserRepositoryImpl --> datasource.repositories.Database
+
+
+datasource.authservice.AuthService ..|> datasource.microserviceinterfaces.IAuthService
+datasource.paymentservice.PaymentService ..|> datasource.microserviceinterfaces.IPaymentService
+datasource.notificationservice.NotificationService ..|> datasource.microserviceinterfaces.INotificationService
+datasource.searchservice.SearchService ..|> datasource.microserviceinterfaces.ISearchService
+
+datasource.authservice.AuthService --> datasource.authservice.AuthDatabase
+datasource.paymentservice.PaymentService --> datasource.paymentservice.PaymentDatabase
+datasource.paymentservice.PaymentService --> datasource.paymentservice.StripeAPI
+datasource.notificationservice.NotificationService --> datasource.notificationservice.NotificationDatabase
+datasource.notificationservice.NotificationService --> datasource.notificationservice.EmailService
+datasource.notificationservice.NotificationService --> datasource.notificationservice.SMSService
+datasource.searchservice.SearchService --> datasource.searchservice.ElasticsearchIndex
+datasource.searchservice.SearchService --> datasource.searchservice.RecommendationEngine
+
+
+domain.services.RentalService ..> domain.models.Rental
+domain.services.RentalService ..> domain.models.Listing
+domain.services.RentalService ..> domain.models.User
+
+domain.services.ListingService ..> domain.models.Listing
+domain.services.ListingService ..> domain.models.Category
+
+domain.services.UserService ..> domain.models.User
+domain.services.UserService ..> domain.models.Review
+
+domain.services.MessageService ..> domain.models.Message
+
+domain.models.Rental ..> domain.models.RentalStatus
+domain.models.Listing ..> domain.models.Category
+domain.models.Listing ..> domain.models.ItemCondition
+
 @enduml
