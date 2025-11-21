@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Campus Rental Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b1120;
+      --bg-elevated: #020617;
+      --panel: #020617;
+      --panel-secondary: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.25);
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --accent-strong: #0ea5e9;
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.65);
+      --shadow-chip: 0 8px 20px rgba(15, 23, 42, 0.4);
+      --nav-width: 250px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #appShell {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* SIDEBAR */
+
+    #sidebar {
+      width: var(--nav-width);
+      background: linear-gradient(180deg, #020617 0%, #020617 45%, #020617 100%);
+      border-right: 1px solid var(--border-subtle);
+      padding: 18px 14px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #sidebarHeader {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+    }
+
+    .logo-pill {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 0 0, #38bdf8 0, #0ea5e9 45%, #0f172a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-chip);
+      font-size: 15px;
+      font-weight: 700;
+      color: #0b1120;
+    }
+
+    .app-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .app-title-main {
+      font-size: 0.93rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #f9fafb;
+    }
+
+    .app-title-sub {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    #navSectionsLabel {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 5px 10px;
+      color: var(--text-soft);
+      opacity: 0.8;
+    }
+
+    #nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 0 4px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-group {
+      margin-bottom: 12px;
+    }
+
+    .nav-group-label {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-soft);
+      opacity: 0.7;
+      padding: 6px 10px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--text-soft);
+      padding: 7px 10px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(15, 23, 42, 0.85);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .nav-btn.active {
+      background: radial-gradient(circle at 0 0, #38bdf8 0, #0f172a 70%);
+      color: #f9fafb;
+      box-shadow: var(--shadow-chip);
+    }
+
+    .nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.7);
+    }
+
+    .nav-btn.active .nav-dot {
+      background: #f9fafb;
+    }
+
+    #userChip {
+      margin-top: auto;
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.1), #020617 60%);
+    }
+
+    #userChipLeft {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .avatar-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #38bdf8 0, #0ea5e9 50%, #0f172a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #020617;
+    }
+
+    .user-label {
+      font-size: 0.74rem;
+      color: var(--text-soft);
+    }
+
+    .user-id-pill {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    /* MAIN SHELL */
+
+    #mainShell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 18px;
+      gap: 14px;
+    }
+
+    #topBar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    #topBarLeft {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #currentPageTitle {
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    #currentPageDesc {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    #topBarRight {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill-outline {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      padding: 4px 9px;
+      font-size: 0.76rem;
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .accent-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.26);
+    }
+
+    .toggle-btn {
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--text-soft);
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    #mainContent {
+      flex: 1;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.8), #020617 60%);
+      box-shadow: var(--shadow-soft);
+      padding: 16px 18px;
+      overflow-y: auto;
+    }
+
+    /* CARDS & LAYOUT */
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.2fr) minmax(260px, 1.4fr);
+      gap: 14px;
+    }
+
+    .single-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel {
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.95), #020617 70%);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 12px 13px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .panel-title {
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .panel-subtitle {
+      font-size: 0.76rem;
+      color: var(--text-soft);
+      margin-top: 2px;
+    }
+
+    .pill-soft {
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-soft);
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent) 0, var(--accent-strong) 100%);
+      color: #020617;
+      box-shadow: var(--shadow-chip);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-soft);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .btn-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #020617;
+    }
+
+    label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 9px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      font-size: 0.84rem;
+      margin-bottom: 8px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .field-row > div {
+      flex: 1;
+    }
+
+    .muted {
+      font-size: 0.76rem;
+      color: var(--text-soft);
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 11px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 9px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+    }
+
+    .chip {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-soft);
+    }
+
+    .price-text {
+      font-size: 0.88rem;
+      color: #e5e7eb;
+    }
+
+    .status-text {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .status-pending {
+      color: var(--warning);
+    }
+
+    .status-approved {
+      color: var(--success);
+    }
+
+    .status-denied {
+      color: var(--danger);
+    }
+
+    .status-active {
+      color: var(--accent);
+    }
+
+    .status-completed {
+      color: var(--text-soft);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      color: var(--text-soft);
+    }
+
+    .pill-accent-soft {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border-color: rgba(56, 189, 248, 0.6);
+    }
+
+    .stack-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    pre {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.78rem;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      overflow-x: auto;
+      max-height: 230px;
+    }
+
+    .notif-item {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 7px 2px;
+    }
+
+    .notif-item:last-child {
+      border-bottom: none;
+    }
+
+    .notif-meta {
+      font-size: 0.72rem;
+      color: var(--text-soft);
+    }
+
+    .notif-type {
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+
+    .notif-badge {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      margin-left: 5px;
+    }
+
+    .notif-badge-new {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent-strong);
+      border-color: rgba(56, 189, 248, 0.7);
+    }
+
+    .notif-badge-read {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-soft);
+    }
+
+    .empty-state {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      padding: 10px 4px;
+    }
+
+    @media (max-width: 900px) {
+      #appShell {
+        flex-direction: column;
+      }
+      #sidebar {
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        padding-bottom: 10px;
+        gap: 10px;
+        align-items: center;
+      }
+      #nav {
+        flex-direction: row;
+        overflow-x: auto;
+        max-width: 70%;
+      }
+      .nav-group-label,
+      #navSectionsLabel {
+        display: none;
+      }
+      #userChip {
+        margin-top: 0;
+      }
+      #mainShell {
+        padding: 10px;
+      }
+      #mainContent {
+        height: calc(100vh - 120px);
+      }
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="appShell">
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+      <div id="sidebarHeader">
+        <div class="logo-pill">CR</div>
+        <div class="app-title">
+          <div class="app-title-main">Campus Rental</div>
+          <div class="app-title-sub">Internal Prototype</div>
+        </div>
+      </div>
+
+      <div id="navSectionsLabel">Navigation</div>
+
+      <nav id="nav">
+        <div class="nav-group">
+          <button class="nav-btn active" data-section="authSection" onclick="showSection('authSection', this, 'Session & Identity', 'Register, login, and switch between test users.')">
+            <div class="nav-dot"></div>
+            Auth
+          </button>
+          <button class="nav-btn" data-section="browseSection" onclick="showSection('browseSection', this, 'Browse Listings', 'Search and request items across campus.')">
+            <div class="nav-dot"></div>
+            Browse
+          </button>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-label">My Space</div>
+          <button class="nav-btn" data-section="myListingsSection" onclick="showSection('myListingsSection', this, 'My Listings', 'Post items for rent and manage your catalog.')">
+            <div class="nav-dot"></div>
+            My Listings
+          </button>
+          <button class="nav-btn" data-section="myRentalsSection" onclick="showSection('myRentalsSection', this, 'My Rentals', 'Track what you are currently renting.')">
+            <div class="nav-dot"></div>
+            My Rentals
+          </button>
+          <button class="nav-btn" data-section="ownerRequestsSection" onclick="showSection('ownerRequestsSection', this, 'Incoming Requests', 'Approve or decline rental requests for your items.')">
+            <div class="nav-dot"></div>
+            Requests (Owner)
+          </button>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-label">Collaboration</div>
+          <button class="nav-btn" data-section="messagesSection" onclick="showSection('messagesSection', this, 'Messages', 'Coordinate handoffs and clarify rental details.')">
+            <div class="nav-dot"></div>
+            Messages
+          </button>
+          <button class="nav-btn" data-section="notificationsSection" onclick="showSection('notificationsSection', this, 'Notifications', 'System updates and rental lifecycle events.')">
+            <div class="nav-dot"></div>
+            Notifications
+          </button>
+        </div>
+      </nav>
+
+      <div id="userChip">
+        <div id="userChipLeft">
+          <div class="avatar-circle" id="avatarInitials">U</div>
+          <div class="user-label" id="userStatusLabel">Not signed in</div>
+        </div>
+        <div class="user-id-pill" id="userIdPill">ID: —</div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div id="mainShell">
+      <div id="topBar">
+        <div id="topBarLeft">
+          <div id="currentPageTitle">Session & Identity</div>
+          <div id="currentPageDesc">Register, login, and switch between test users.</div>
+        </div>
+        <div id="topBarRight">
+          <span class="pill-outline">
+            <span class="accent-dot"></span>
+            Backend: FastAPI • SQLite
+          </span>
+          <button class="toggle-btn" onclick="toggleTheme()">Toggle Theme</button>
+        </div>
+      </div>
+
+      <div id="mainContent">
+        <!-- AUTH SECTION -->
+        <section id="authSection">
+          <div class="section-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Register New Account</div>
+                  <div class="panel-subtitle">Create a test student profile for the prototype.</div>
+                </div>
+                <span class="pill-soft">New user</span>
+              </div>
+
+              <label for="regEmail">University Email</label>
+              <input id="regEmail" placeholder="user@university.edu" />
+
+              <label for="regName">Name</label>
+              <input id="regName" placeholder="Full Name" />
+
+              <label for="regPassword">Password</label>
+              <input id="regPassword" type="password" placeholder="••••••••" />
+
+              <button class="btn btn-primary" onclick="register()">
+                <span class="btn-icon"></span>
+                Register & Sign In
+              </button>
+              <p class="muted" style="margin-top:8px;">
+                For the prototype we skip real .edu verification but keep the flow close to the final experience.
+              </p>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Sign In</div>
+                  <div class="panel-subtitle">Switch between existing test accounts.</div>
+                </div>
+                <span class="pill-soft">Existing user</span>
+              </div>
+
+              <label for="loginEmail">Email</label>
+              <input id="loginEmail" placeholder="saeed@university.edu" />
+
+              <label for="loginPassword">Password</label>
+              <input id="loginPassword" type="password" placeholder="••••••••" />
+
+              <button class="btn btn-primary" onclick="login()">
+                <span class="btn-icon"></span>
+                Sign In
+              </button>
+
+              <div style="margin-top:10px;">
+                <div class="muted">Current user ID: <span id="currentUserId">—</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- BROWSE LISTINGS -->
+        <section id="browseSection" style="display:none;">
+          <div class="single-column">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Browse Listings</div>
+                  <div class="panel-subtitle">
+                    View active rental items and submit requests as a rentee.
+                  </div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadListings()">
+                  Refresh
+                </button>
+              </div>
+              <div id="browseListingsGrid" class="grid-cards">
+                <!-- cards populated via JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MY LISTINGS -->
+        <section id="myListingsSection" style="display:none;">
+          <div class="single-column">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Create Listing</div>
+                  <div class="panel-subtitle">
+                    Publish an item for other students to rent.
+                  </div>
+                </div>
+                <span class="pill-soft">Owner workspace</span>
+              </div>
+
+              <label for="listTitle">Title</label>
+              <input id="listTitle" placeholder="Mirrorless Camera, TI-84, Hiking Tent..." />
+
+              <label for="listDesc">Description</label>
+              <textarea
+                id="listDesc"
+                placeholder="Condition, what’s included, preferred pickup location on campus, etc."
+              ></textarea>
+
+              <div class="field-row">
+                <div>
+                  <label for="listPrice">Price per day (USD)</label>
+                  <input id="listPrice" type="number" step="0.01" placeholder="10.00" />
+                </div>
+              </div>
+
+              <button class="btn btn-primary" onclick="createListing()">
+                <span class="btn-icon"></span>
+                Publish Listing
+              </button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">My Listings</div>
+                  <div class="panel-subtitle">
+                    Items you currently offer to other students.
+                  </div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadMyListings()">
+                  Refresh
+                </button>
+              </div>
+              <div id="myListingsContainer" class="grid-cards"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MY RENTALS -->
+        <section id="myRentalsSection" style="display:none;">
+          <div class="single-column">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">My Rentals</div>
+                  <div class="panel-subtitle">
+                    Track rentals where you are the rentee (borrower).
+                  </div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadMyRentals()">Refresh</button>
+              </div>
+              <div id="myRentalsContainer" class="grid-cards"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- OWNER REQUESTS -->
+        <section id="ownerRequestsSection" style="display:none;">
+          <div class="single-column">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Incoming Requests</div>
+                  <div class="panel-subtitle">
+                    Approve or deny rental requests for your listings.
+                  </div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadOwnerRequests()">Refresh</button>
+              </div>
+              <div id="ownerRequestsContainer" class="grid-cards"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MESSAGES -->
+        <section id="messagesSection" style="display:none;">
+          <div class="section-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Send Message</div>
+                  <div class="panel-subtitle">
+                    Coordinate pickup, return, or clarify expectations.
+                  </div>
+                </div>
+                <span class="pill-soft">Conversation</span>
+              </div>
+
+              <label for="msgRentalId">Rental ID</label>
+              <input id="msgRentalId" placeholder="Rental ID" />
+
+              <label for="msgReceiverId">Receiver User ID</label>
+              <input id="msgReceiverId" placeholder="User ID" />
+
+              <label for="msgText">Message</label>
+              <textarea
+                id="msgText"
+                placeholder="Hey, can we shift pickup 15 minutes later?"
+              ></textarea>
+
+              <button class="btn btn-primary" onclick="sendMessage()">
+                <span class="btn-icon"></span>
+                Send
+              </button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Inbox</div>
+                  <div class="panel-subtitle">
+                    Raw message view for debugging and demos.
+                  </div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadInbox()">Refresh</button>
+              </div>
+              <pre id="inboxOutput">No messages loaded yet.</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- NOTIFICATIONS -->
+        <section id="notificationsSection" style="display:none;">
+          <div class="single-column">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Notifications</div>
+                  <div class="panel-subtitle">
+                    System events across the rental lifecycle (requests, approvals, etc.).
+                  </div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadNotifications()">Refresh</button>
+              </div>
+              <div id="notifContainer"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUserId = null;
+
+    function showSection(id, btn, title, desc) {
+      document.querySelectorAll("#mainContent section").forEach((s) => {
+        s.style.display = "none";
+      });
+      const section = document.getElementById(id);
+      if (section) section.style.display = "block";
+
+      document.querySelectorAll(".nav-btn").forEach((b) => {
+        b.classList.remove("active");
+      });
+      if (btn) btn.classList.add("active");
+
+      if (title) document.getElementById("currentPageTitle").innerText = title;
+      if (desc) document.getElementById("currentPageDesc").innerText = desc;
+    }
+
+    function setCurrentUser(id) {
+      currentUserId = id;
+      document.getElementById("currentUserId").innerText = id || "—";
+      document.getElementById("userIdPill").innerText = "ID: " + (id || "—");
+      const statusLabel = document.getElementById("userStatusLabel");
+      const avatar = document.getElementById("avatarInitials");
+      if (id) {
+        statusLabel.innerText = "Signed in as #" + id;
+        avatar.innerText = "U";
+      } else {
+        statusLabel.innerText = "Not signed in";
+        avatar.innerText = "U";
+      }
+    }
+
+    function toggleTheme() {
+      // simple placeholder: in future you can swap css vars here
+      alert("Theme toggle is a visual placeholder for now. You can wire it to CSS variables later if you want.");
+    }
+
+    // ---------- AUTH ----------
+    async function register() {
+      const email = document.getElementById("regEmail").value.trim();
+      const name = document.getElementById("regName").value.trim();
+      const password = document.getElementById("regPassword").value;
+
+      if (!email || !name || !password) {
+        alert("Fill all fields to register.");
+        return;
+      }
+
+      try {
+        const res = await fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name, password }),
+        });
+        const data = await res.json();
+        if (data.id) {
+          setCurrentUser(data.id);
+          alert("Registered & signed in as user #" + data.id);
+        } else {
+          alert("Registration error: " + JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error during registration.");
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      if (!email || !password) {
+        alert("Fill both email and password to sign in.");
+        return;
+      }
+
+      try {
+        const res = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (data.user_id) {
+          setCurrentUser(data.user_id);
+          alert("Signed in as user #" + data.user_id);
+        } else {
+          alert("Login failed: " + (data.error || JSON.stringify(data)));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error during login.");
+      }
+    }
+
+    // ---------- LISTINGS ----------
+    async function createListing() {
+      if (!currentUserId) {
+        alert("Login first.");
+        return;
+      }
+      const title = document.getElementById("listTitle").value.trim();
+      const description = document.getElementById("listDesc").value.trim();
+      const priceStr = document.getElementById("listPrice").value;
+      const price_per_day = parseFloat(priceStr);
+
+      if (!title || !description || isNaN(price_per_day)) {
+        alert("Fill title, description, and price.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/listings/create?user_id=${currentUserId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description, price_per_day }),
+        });
+        const data = await res.json();
+        if (data.id) {
+          alert("Listing created.");
+          document.getElementById("listTitle").value = "";
+          document.getElementById("listDesc").value = "";
+          document.getElementById("listPrice").value = "";
+          loadMyListings();
+          loadListings();
+        } else {
+          alert("Error: " + JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error while creating listing.");
+      }
+    }
+
+    async function loadListings() {
+      try {
+        const res = await fetch("/listings");
+        const data = await res.json();
+        const container = document.getElementById("browseListingsGrid");
+        container.innerHTML = "";
+        if (!data.length) {
+          container.innerHTML = `<div class="empty-state">No listings yet. Create one from <strong>My Listings</strong>.</div>`;
+          return;
+        }
+        data.forEach((l) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="card-title-row">
+              <div class="card-title">${l.title}</div>
+              <span class="chip">Listing #${l.id}</span>
+            </div>
+            <p class="muted">Owner #${l.owner_id}</p>
+            <p class="muted" style="margin-top:4px;">${l.description}</p>
+            <p class="price-text" style="margin-top:6px;"><strong>$${l.price_per_day.toFixed(
+              2
+            )}</strong> / day</p>
+            <div class="stack-vertical" style="margin-top:6px;">
+              <div class="field-row">
+                <div>
+                  <label style="margin-bottom:1px;">Start</label>
+                  <input type="date" id="start_${l.id}" />
+                </div>
+                <div>
+                  <label style="margin-bottom:1px;">End</label>
+                  <input type="date" id="end_${l.id}" />
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="requestRentalFromListing(${l.id})">
+                <span class="btn-icon"></span>
+                Request Rental
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load listings.");
+      }
+    }
+
+    async function loadMyListings() {
+      if (!currentUserId) {
+        alert("Login first.");
+        return;
+      }
+      try {
+        const res = await fetch(`/users/${currentUserId}/listings`);
+        const data = await res.json();
+        const container = document.getElementById("myListingsContainer");
+        container.innerHTML = "";
+        if (!data.length) {
+          container.innerHTML = `<div class="empty-state">You don’t have any listings yet.</div>`;
+          return;
+        }
+        data.forEach((l) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="card-title-row">
+              <div class="card-title">${l.title}</div>
+              <span class="chip pill-accent-soft">My listing</span>
+            </div>
+            <p class="muted">Listing #${l.id}</p>
+            <p class="muted" style="margin-top:4px;">${l.description}</p>
+            <p class="price-text" style="margin-top:6px;"><strong>$${l.price_per_day.toFixed(
+              2
+            )}</strong> / day</p>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load your listings.");
+      }
+    }
+
+    // ---------- RENTALS ----------
+    async function requestRentalFromListing(listingId) {
+      if (!currentUserId) {
+        alert("Login first.");
+        return;
+      }
+      const start = document.getElementById(`start_${listingId}`).value;
+      const end = document.getElementById(`end_${listingId}`).value;
+      if (!start || !end) {
+        alert("Select start and end dates.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/rentals/request?rentee_id=${currentUserId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            listing_id: listingId,
+            start_date: start,
+            end_date: end,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          alert("Request failed: " + data.error);
+        } else if (data.id) {
+          alert("Rental request created (ID " + data.id + ").");
+        } else {
+          alert("Unexpected response: " + JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error while requesting rental.");
+      }
+    }
+
+    async function loadMyRentals() {
+      if (!currentUserId) {
+        alert("Login first.");
+        return;
+      }
+      try {
+        const res = await fetch(`/rentals/rentee?rentee_id=${currentUserId}`);
+        const data = await res.json();
+        const container = document.getElementById("myRentalsContainer");
+        container.innerHTML = "";
+        if (!data.length) {
+          container.innerHTML = `<div class="empty-state">You are not renting anything yet.</div>`;
+          return;
+        }
+        data.forEach((r) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          const statusClass = `status-${r.status}`;
+          card.innerHTML = `
+            <div class="card-title-row">
+              <div class="card-title">Rental #${r.id}</div>
+              <span class="chip">Listing #${r.listing_id}</span>
+            </div>
+            <p class="muted">Rentee #${r.rentee_id}</p>
+            <p class="muted" style="margin-top:4px;">From <strong>${r.start_date}</strong> to <strong>${
+            r.end_date
+          }</strong></p>
+            <p class="status-text ${statusClass}" style="margin-top:4px;">Status: ${r.status}</p>
+            <div class="tag-row">
+              <button class="btn btn-ghost" onclick="pickupRental(${r.id})">Confirm Pickup</button>
+              <button class="btn btn-ghost" onclick="returnRental(${r.id})">Confirm Return</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load your rentals.");
+      }
+    }
+
+    async function loadOwnerRequests() {
+      if (!currentUserId) {
+        alert("Login first as owner.");
+        return;
+      }
+      try {
+        const res = await fetch(`/rentals/owner?owner_id=${currentUserId}`);
+        const data = await res.json();
+        const container = document.getElementById("ownerRequestsContainer");
+        container.innerHTML = "";
+        if (!data.length) {
+          container.innerHTML = `<div class="empty-state">No incoming requests yet.</div>`;
+          return;
+        }
+        data.forEach((r) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          const statusClass = `status-${r.status}`;
+          card.innerHTML = `
+            <div class="card-title-row">
+              <div class="card-title">Rental Request #${r.id}</div>
+              <span class="chip">Listing #${r.listing_id}</span>
+            </div>
+            <p class="muted">Rentee #${r.rentee_id}</p>
+            <p class="muted" style="margin-top:4px;">From <strong>${r.start_date}</strong> to <strong>${
+            r.end_date
+          }</strong></p>
+            <p class="status-text ${statusClass}" style="margin-top:4px;">Status: ${r.status}</p>
+            <div class="tag-row" style="margin-top:6px;">
+              <button class="btn btn-primary" onclick="approveRental(${r.id})">
+                <span class="btn-icon"></span>
+                Approve
+              </button>
+              <button class="btn btn-ghost" onclick="denyRental(${r.id})">Deny</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load owner requests.");
+      }
+    }
+
+    async function approveRental(rentalId) {
+      try {
+        const res = await fetch(`/rentals/${rentalId}/approve`, { method: "POST" });
+        await res.json();
+        alert("Approved rental #" + rentalId);
+        loadOwnerRequests();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to approve rental.");
+      }
+    }
+
+    async function denyRental(rentalId) {
+      try {
+        const res = await fetch(`/rentals/${rentalId}/deny`, { method: "POST" });
+        await res.json();
+        alert("Denied rental #" + rentalId);
+        loadOwnerRequests();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to deny rental.");
+      }
+    }
+
+    async function pickupRental(rentalId) {
+      try {
+        const res = await fetch(`/rentals/${rentalId}/pickup`, { method: "POST" });
+        await res.json();
+        alert("Pickup confirmed for rental #" + rentalId);
+        loadMyRentals();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to confirm pickup.");
+      }
+    }
+
+    async function returnRental(rentalId) {
+      try {
+        const res = await fetch(`/rentals/${rentalId}/return`, { method: "POST" });
+        await res.json();
+        alert("Return confirmed for rental #" + rentalId);
+        loadMyRentals();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to confirm return.");
+      }
+    }
+
+    // ---------- MESSAGES ----------
+    async function sendMessage() {
+      if (!currentUserId) {
+        alert("Login first.");
+        return;
+      }
+      const rental_id = parseInt(document.getElementById("msgRentalId").value);
+      const receiver_id = parseInt(document.getElementById("msgReceiverId").value);
+      const text = document.getElementById("msgText").value.trim();
+
+      if (!rental_id || !receiver_id || !text) {
+        alert("Fill rental ID, receiver ID, and message.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/messages/send?sender_id=${currentUserId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rental_id, receiver_id, text }),
+        });
+        await res.json();
+        alert("Message sent.");
+        document.getElementById("msgText").value = "";
+        loadInbox();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to send message.");
+      }
+    }
+
+    async function loadInbox() {
+      if (!currentUserId) {
+        alert("Login first.");
+        return;
+      }
+      try {
+        const res = await fetch(`/messages/inbox?user_id=${currentUserId}`);
+        const data = await res.json();
+        document.getElementById("inboxOutput").innerText = JSON.stringify(
+          data,
+          null,
+          2
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load inbox.");
+      }
+    }
+
+    // ---------- NOTIFICATIONS ----------
+    async function loadNotifications() {
+      if (!currentUserId) {
+        alert("Login first.");
+        return;
+      }
+      try {
+        const res = await fetch(`/notifications?user_id=${currentUserId}`);
+        const data = await res.json();
+        const container = document.getElementById("notifContainer");
+        container.innerHTML = "";
+        if (!data.length) {
+          container.innerHTML = `<div class="empty-state">No notifications yet.</div>`;
+          return;
+        }
+        data.forEach((n) => {
+          const item = document.createElement("div");
+          item.className = "notif-item";
+          const badgeClass = n.is_read
+            ? "notif-badge notif-badge-read"
+            : "notif-badge notif-badge-new";
+          item.innerHTML = `
+            <div class="notif-meta">${new Date(n.created_at).toLocaleString()}</div>
+            <div style="margin-top:3px;">
+              <span class="notif-type">${n.type}</span>
+              <span class="${badgeClass}">${n.is_read ? "Read" : "New"}</span>
+            </div>
+            <div class="muted" style="margin-top:4px;">${n.content}</div>
+          `;
+          container.appendChild(item);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load notifications.");
+      }
+    }
+
+    // initial load
+    loadListings();
+  </script>
+</body>
+</html>
