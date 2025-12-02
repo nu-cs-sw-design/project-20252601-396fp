@@ -35,3 +35,5 @@ Al Nahiyan and Saeed AlKaabi
 
 ## Milestones:
 - Milestone 1: https://docs.google.com/document/d/1NtlV_lC_xWwM-uV6avwhlX2GhohpykeKkHb5RiIDSaU/edit?usp=sharing
+
+- Milestone 3: https://docs.google.com/document/d/1K3qpVERM1rnA0AtRqXbA7uBTgAuDViXvqYywLr1aizs/edit?usp=sharing
